@@ -3,9 +3,13 @@ import ReactDOM from 'react-dom';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+// global styles
+import { Global } from '@emotion/react';
+import { globalStyles } from './styles/global';
 
 ReactDOM.render(
   <React.StrictMode>
+    <Global styles={globalStyles} />
     <App />
   </React.StrictMode>,
   document.getElementById('root')
