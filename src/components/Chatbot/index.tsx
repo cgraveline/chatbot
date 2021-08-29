@@ -10,6 +10,7 @@ import { ChatHeader } from "../ChatHeader";
 import { ChatContent } from "../ChatContent";
 import { Form } from "../Form";
 import { ChatFooter } from "../ChatFooter";
+import { useEffect } from "react";
 
 const chatbot = css`
   position: fixed;
@@ -64,12 +65,10 @@ const response = css`
 function Chatbot() {
   // interfaces
   interface IMessage {
-    message: [
-      {
-        from: string;
-        message: string;
-      }
-    ];
+    message: {
+      from: string;
+      message: string;
+    }[];
   }
 
   const initialState: IMessage = {
@@ -89,9 +88,7 @@ function Chatbot() {
   const [inputValue, setInputValue] = useState<string>("");
   const [inputErr, setInputErr] = useState<boolean>(false);
   const [state, setState] = useState(initialState);
-
-  // when state updates, update allMessages object
-  let allMessages: IMessage = state;
+  const [submit, setSubmit] = useState(false);
 
   function handleIcon() {
     setMessageState(false);
@@ -114,47 +111,51 @@ function Chatbot() {
     setMessageClosed(true);
   }
 
-  function respond() {
-    setTimeout(() => {
-      setState({
-        ...state,
-        message: [
-          {
-            from: "bot",
-            message: `It's nice to meet you, ${inputValue}`,
-          },
-        ],
-      });
-    }, 1500);
-  }
-
   // error message
   const inputErrorMessage = "Please type a message";
   function formValidation() {
     inputValue.length <= 0 ? setInputErr(true) : setInputErr(false);
   }
 
+  function respond() {
+    if (inputValue && inputValue.length > 0) {
+      setState({
+        message: [
+          ...state.message,
+          {
+            from: "bot",
+            message: `It's nice to meet you, ${inputValue}`,
+          },
+        ],
+      });
+    }
+  }
+
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     formValidation();
 
-    async function addToState() {
+    if (inputValue && inputValue.length > 0) {
       setState({
-        ...state,
         message: [
+          ...state.message,
           {
             from: "user",
             message: inputValue,
           },
         ],
       });
-      await respond();
     }
 
-    if (inputValue && inputValue.length > 0) {
-      addToState();
-    }
+    // clear input
+    setInputValue("");
+    // set submit to true
+    setSubmit(true);
   }
+
+  useEffect(() => {
+    submit ? respond() : console.log("not yet");
+  }, []);
 
   return (
     <div css={chatbot}>
@@ -175,7 +176,7 @@ function Chatbot() {
           <ChatHeader closeChat={closeChat} />
           <ChatContent>
             <ul css={convo}>
-              {allMessages.message.map((message) =>
+              {state.message.map((message) =>
                 message.from === "user" ? (
                   <li
                     key={message.from}
